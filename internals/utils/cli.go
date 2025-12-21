@@ -47,7 +47,7 @@ func NewFlagIdentifier(long string, short *string, requireValue bool, descriptio
 		Long:         long,
 		Short:        short,
 		RequireValue: requireValue,
-		Description: description,
+		Description:  description,
 	}, nil
 }
 
