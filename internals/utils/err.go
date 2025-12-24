@@ -17,12 +17,9 @@ func InvalidValue(flag, value, expects string) error {
 	)
 }
 
-// When passing a non implemented flag.
-func InvalidFlag(f *FlagIdentifier) error {
-	return fmt.Errorf(
-		"the `%s` flag isn't valid (probly an implement err at `app` package).",
-		f.Long,
-	)
+// When passing an unexpected flag.
+func InvalidFlag(f string) error {
+	return fmt.Errorf("the `%s` flag isn't valid.", f)
 }
 
 // Generates an error message when flag/alias is called more than once.

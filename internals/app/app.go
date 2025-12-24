@@ -5,6 +5,7 @@ import (
 	"github.com/nasccped/colgoterm/internals/utils"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -99,6 +100,13 @@ func (app *App) checkFlagsAndValues() error {
 		h = dwfaultHeight
 		g = defaultGap
 	)
+	for _, a := range app.args {
+		if strings.HasPrefix(a, "-") && !slices.ContainsFunc(app.flags, func(fi *utils.FlagIdentifier) bool {
+			return fi.Long == a || (fi.Short != nil && *fi.Short == a)
+		}) {
+			return utils.InvalidFlag(a)
+		}
+	}
 	for _, f := range app.flags {
 		value, err := f.Unwrap(app.args)
 		if err != nil {
@@ -118,8 +126,6 @@ func (app *App) checkFlagsAndValues() error {
 			h = intVal
 		} else if f.FlagIs("--gap", &gapAlias) {
 			g = intVal
-		} else {
-			return utils.InvalidFlag(f)
 		}
 	}
 	rf := newRuntimeFields(w, h, g)
