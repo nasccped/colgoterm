@@ -51,39 +51,6 @@ func NewFlagIdentifier(long string, short *string, requireValue bool, descriptio
 	}, nil
 }
 
-// Generates an error message when flag/alias is called more than once.
-func (flagId *FlagIdentifier) flagCalledMoreThanOnce() error {
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("The `%s` ", flagId.Long))
-	if temp := flagId.Short; temp != nil {
-		buf.WriteString(fmt.Sprintf("| `%s` ", *temp))
-	}
-	buf.WriteString("flag was called more than once.")
-	return fmt.Errorf("%s", buf.String())
-}
-
-// When flag is called but there's no value for it.
-func (flagId *FlagIdentifier) missingValue() error {
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("The `%s` ", flagId.Long))
-	if temp := flagId.Short; temp != nil {
-		buf.WriteString(fmt.Sprintf("| `%s` ", *temp))
-	}
-	buf.WriteString("flag was called but with no value.")
-	return fmt.Errorf("%s", buf.String())
-}
-
-// When a flag is followed by another one instead of a value.
-func (flagId *FlagIdentifier) followedByAnotherFlag(otherFlag string) error {
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("A value for `%s` ", flagId.Long))
-	if temp := flagId.Short; temp != nil {
-		buf.WriteString(fmt.Sprintf("| `%s` ", *temp))
-	}
-	buf.WriteString(fmt.Sprintf("flag was expected, but received another flag (`%s`).", otherFlag))
-	return fmt.Errorf("%s", buf.String())
-}
-
 // Unwraps the value passed through args based on the flag identifier. If the flag wasn't called,
 // returns (nil, nil), but if the flag was called with no value, (nil, error) is returned.
 //
@@ -118,4 +85,9 @@ func (fi *FlagIdentifier) Unwrap(args []string) (*string, error) {
 		err = fi.missingValue()
 	}
 	return value, err
+}
+
+// Returns if the flag contains the specified name/alias.
+func (fi *FlagIdentifier) FlagIs(name string, alias *string) bool {
+	return fi.Long == name || (alias != nil && *alias == *fi.Short)
 }
