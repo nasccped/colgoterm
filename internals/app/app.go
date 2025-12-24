@@ -4,48 +4,33 @@ import (
 	"fmt"
 	"github.com/nasccped/colgoterm/internals/utils"
 	"slices"
+	"strconv"
 )
 
-// App fields when calling the program.
-type App struct {
-	flags []*utils.FlagIdentifier
-}
+const (
+	defaultWidth  = 8
+	dwfaultHeight = 4
+	defaultGap    = 4
+)
 
-// Creates a new app struct instance.
-func NewApp(flags []*utils.FlagIdentifier) *App {
-	return &App{flags: flags}
-}
+var (
+	widthAlias  = "-w"
+	heightAlias = "-h"
+	gapAlias    = "-g"
+)
 
-// Returns error when invalid flags are passed.
-func (app *App) CheckInvalidFlags(args []string) error {
-	for _, a := range args {
-		if !slices.ContainsFunc(app.flags, func(fi *utils.FlagIdentifier) bool {
-			shortCheck := false
-			if temp := fi.Short; temp != nil {
-				shortCheck = *temp == a
-			}
-			return shortCheck || fi.Long == a
-		}) {
-			return unexpectedFlag(a)
-		}
-	}
-	return nil
-}
-
-// When the provided flag wasn't expected.
-func unexpectedFlag(flag string) error {
-	return fmt.Errorf("The `%s` flag wasn't expected.", flag)
-}
-
-func (app *App) ShowHelp() {
+func (app *App) printHelp() {
 	const defaultValuePlaceholder = "<VALUE>"
 	var (
 		maxLong  int = 0
 		maxShort int = 0
 		maxValue int = 0
 	)
-	fmt.Printf("A go lang colored terminal printing.\n\n")
-	fmt.Printf("Usage: colgoterm [OPTIONS]\n\n")
+	fmt.Print(`A go lang colored terminal printer.
+
+Usage: colgoterm [OPTIONS]
+
+`)
 	for _, f := range app.flags {
 		if temp := len(f.Long); temp > maxLong {
 			maxLong = temp
@@ -58,13 +43,11 @@ func (app *App) ShowHelp() {
 		}
 	}
 	maxLong++
-	fmt.Printf("Options:\n")
+	fmt.Println("Options:")
 	for _, f := range app.flags {
-		fmt.Printf("  %s", f.Long)
-		fmt.Printf("%*s", maxLong-len(f.Long), " ")
+		fmt.Printf("  %s%*s", f.Long, maxLong-len(f.Long), " ")
 		if temp := f.Short; temp != nil {
-			fmt.Printf("| %s", *temp)
-			fmt.Printf("%*s", maxShort-len(*temp), " ")
+			fmt.Printf("| %s%*s", *temp, maxShort-len(*temp), " ")
 		} else {
 			fmt.Printf("%*s", maxShort+3, " ")
 		}
@@ -73,6 +56,73 @@ func (app *App) ShowHelp() {
 		} else {
 			fmt.Printf("%*s ", maxValue, " ")
 		}
-		fmt.Println(f.Description)
+		fmt.Printf("%s\n", f.Description)
 	}
+}
+
+// App fields when calling the program.
+type App struct {
+	flags []*utils.FlagIdentifier
+	args  []string
+}
+
+// Creates a new app struct instance.
+func NewApp(flags []*utils.FlagIdentifier, args []string) *App {
+	return &App{flags: flags, args: args}
+}
+
+// Runs the app by the provided flag/args.
+func (app *App) Run() error {
+	if temp := app.checkFlagsAndValues(); temp != nil {
+		return temp
+	}
+	return nil
+}
+
+// If the `--help` flag/alias was called.
+func (app *App) containsHelp() bool {
+	return slices.ContainsFunc(app.args, func(s string) bool {
+		return s == "--help"
+	})
+}
+
+// Check any unexpected flag or missing value.
+func (app *App) checkFlagsAndValues() error {
+	if app.containsHelp() && len(app.args) > 1 {
+		return utils.InvalidValue(app.args[0], app.args[1], "no flag/value")
+	} else if app.containsHelp() {
+		app.printHelp()
+		return nil
+	}
+	var (
+		w = defaultWidth
+		h = dwfaultHeight
+		g = defaultGap
+	)
+	for _, f := range app.flags {
+		value, err := f.Unwrap(app.args)
+		if err != nil {
+			return err
+		} else if value == nil {
+			continue
+		}
+		intVal, err := strconv.Atoi(*value)
+		if err != nil {
+			return utils.InvalidValue(f.Long, *value, "<integer value>")
+		} else if intVal < 3 || intVal > 100 {
+			return utils.InvalidValue(f.Long, *value, "<value between 4 and 100>")
+		}
+		if f.FlagIs("--width", &widthAlias) {
+			w = intVal
+		} else if f.FlagIs("--height", &heightAlias) {
+			h = intVal
+		} else if f.FlagIs("--gap", &gapAlias) {
+			g = intVal
+		} else {
+			return utils.InvalidFlag(f)
+		}
+	}
+	rf := newRuntimeFields(w, h, g)
+	rf.run()
+	return nil
 }
