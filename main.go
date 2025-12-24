@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"github.com/nasccped/colgoterm/internals/app"
 	"github.com/nasccped/colgoterm/internals/utils"
+	"os"
 )
 
 var (
