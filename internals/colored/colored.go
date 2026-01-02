@@ -67,6 +67,10 @@ func (c *Colored) WithRedBG() *Colored {
 	return c.overrideBGByFunc(nbg, red)
 }
 
+func (c *Colored) WithGreenBG() *Colored {
+	return c.overrideBGByFunc(nbg, green)
+}
+
 func (c *Colored) WithYellowBG() *Colored {
 	return c.overrideBGByFunc(nbg, yellow)
 }
@@ -93,6 +97,10 @@ func (c *Colored) WithBrightBlackBG() *Colored {
 
 func (c *Colored) WithBrightRedBG() *Colored {
 	return c.overrideBGByFunc(bbg, red)
+}
+
+func (c *Colored) WithBrightGreenBG() *Colored {
+	return c.overrideBGByFunc(bbg, green)
 }
 
 func (c *Colored) WithBrightYellowBG() *Colored {

@@ -28,6 +28,7 @@ func (rf *runtimeFields) run() {
 	funcs := []*functionPointer{
 		newFunctionPointer((*col).WithBlackBG, (*col).WithBrightBlackBG),
 		newFunctionPointer((*col).WithRedBG, (*col).WithBrightRedBG),
+		newFunctionPointer((*col).WithGreenBG, (*col).WithBrightGreenBG),
 		newFunctionPointer((*col).WithYellowBG, (*col).WithBrightYellowBG),
 		newFunctionPointer((*col).WithBlueBG, (*col).WithBrightBlueBG),
 		newFunctionPointer((*col).WithMagentaBG, (*col).WithBrightMagentaBG),
